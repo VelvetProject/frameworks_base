@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <string-array name="telephony_data_type_sim">
+        <!--NETWORK_TYPE_HSPAP-->
+        <item>drawable/stat_sys_data_fully_connected_hp</item>
+    </string-array>
+
+</resources>
