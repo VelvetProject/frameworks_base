@@ -38,4 +38,7 @@
     <!-- Screenrecord -->
     <java-symbol type="bool" name="config_enableScreenrecordChord" />
 
+    <!-- Doze invert -->
+    <java-symbol type="bool" name="config_invert_colors_on_doze" />
+
 </resources>
