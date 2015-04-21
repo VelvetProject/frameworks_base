@@ -2221,6 +2221,9 @@ message MetricsEvent {
     // Caffeine QS
     QS_CAFFEINE = 411;
 
+    // Heads up QS
+    QS_HEADS_UP = 412;
+
     // Add new aosp constants above this line.
     // END OF AOSP CONSTANTS
   }
