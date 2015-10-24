@@ -3730,6 +3730,12 @@ public final class Settings {
         public static final String STATUSBAR_BATTERY_STYLE = "statusbar_battery_style";
 
         /**
+         * Whether to wake the screen with the volume keys, the value is boolean.
+         * @hide
+         */
+        public static final String VOLUME_WAKE_SCREEN = "volume_wake_screen";
+
+        /**
          * Status bar carrier label
          * 0: Hide
          * 1: Display on keyguard status bar
