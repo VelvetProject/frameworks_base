@@ -34,7 +34,7 @@ public class OtherPrefs extends PreferenceFragment {
     @Override
     public void onResume() {
         super.onResume();
-        getActivity().setTitle(R.string.systemui_tuner_statusbar_title);
+        getActivity().setTitle(R.string.systemui_tuner_other_title);
     }
 }
 
