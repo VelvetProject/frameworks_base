@@ -23,6 +23,11 @@
             android:title="@string/overview_nav_bar_gesture"
             android:summary="@string/overview_nav_bar_gesture_desc" />
 
+    <com.android.systemui.tuner.TunerSwitch
+            android:key="qs_show_brightness"
+            android:title="@string/show_brightness"
+            sysui:defValue="true" />
+
     <!-- importance -->
     <Preference
             android:key="power_notification_controls"
