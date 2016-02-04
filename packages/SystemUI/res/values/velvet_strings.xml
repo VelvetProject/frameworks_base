@@ -31,4 +31,9 @@
     <string name="systemui_tuner_statusbar_title">Status Bar Items</string>
     <string name="systemui_tuner_other_title">System UI Settings</string>
 
+    <!-- Caffeine QS Tile -->
+    <string name="quick_settings_caffeine_label">Caffeine</string>
+    <string name="accessibility_quick_settings_caffeine_off">Caffeine off.</string>
+    <string name="accessibility_quick_settings_caffeine_on">Caffeine on.</string>
+
 </resources>
