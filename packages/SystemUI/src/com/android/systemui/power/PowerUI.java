@@ -144,7 +144,6 @@ public class PowerUI extends SystemUI {
             filter.addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGING);
             filter.addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED);
             filter.addAction(Intent.ACTION_POWER_CONNECTED);
-            filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
             mContext.registerReceiver(this, filter, null, mHandler);
         }
 
@@ -216,8 +215,7 @@ public class PowerUI extends SystemUI {
                 mScreenOffTime = -1;
             } else if (Intent.ACTION_USER_SWITCHED.equals(action)) {
                 mWarnings.userSwitched();
-            } else if (Intent.ACTION_POWER_CONNECTED.equals(action)
-                    || Intent.ACTION_POWER_DISCONNECTED.equals(action)) {
+            } else if (Intent.ACTION_POWER_CONNECTED.equals(action)) {
                 final ContentResolver cr = mContext.getContentResolver();
                 if (mIgnoreFirstPowerEvent) {
                     mIgnoreFirstPowerEvent = false;
