@@ -48,5 +48,6 @@
     <string name="battery_style_droid">Droid</string>
     <string name="battery_style_hidden">Hidden</string>
 
+    <string name="default_string">Default</string>
 
 </resources>

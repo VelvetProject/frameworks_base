@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Base attributes available to SlimSeekBarPreference. -->
+    <declare-styleable name="SlimSeekBarPreference">
+        <!-- No added attributes at this time -->
+    </declare-styleable>
+
+</resources>
