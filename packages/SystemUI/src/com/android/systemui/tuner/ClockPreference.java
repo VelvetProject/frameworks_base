@@ -60,7 +60,7 @@ public class ClockPreference extends DropDownPreference implements TunerService.
         } else if (Clock.CLOCK_SECONDS.equals(key)) {
             mHasSeconds = newValue != null && Integer.parseInt(newValue) != 0;
         }
-        if (!mHasSetValue) {
+        /*if (!mHasSetValue) {
             // Because of the complicated tri-state it can end up looping and setting state back to
             // what the user didn't choose.  To avoid this, just set the state once and rely on the
             // preference to handle updates.
@@ -72,7 +72,7 @@ public class ClockPreference extends DropDownPreference implements TunerService.
             } else {
                 setValue(DISABLED);
             }
-        }
+        }*/
     }
 
     @Override
