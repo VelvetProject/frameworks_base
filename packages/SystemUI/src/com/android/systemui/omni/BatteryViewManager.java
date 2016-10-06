@@ -202,4 +202,9 @@ public class BatteryViewManager {
             mCurrentBatteryView.setTextShadow(enabled);
         }
     }
+
+    public void onDensityOrFontScaleChanged() {
+        mCurrentBatteryView.requestLayout();
+        mCurrentBatteryView.invalidate();
+    }
 }
