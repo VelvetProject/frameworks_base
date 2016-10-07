@@ -28,18 +28,18 @@ import android.view.MenuItem;
 import com.android.settingslib.drawer.SettingsDrawerActivity;
 import com.android.systemui.R;
 
-public class OtherPrefsActivity extends SettingsDrawerActivity implements
+public class ColorAndAppearanceActivity extends SettingsDrawerActivity implements
         PreferenceFragment.OnPreferenceStartFragmentCallback,
         PreferenceFragment.OnPreferenceStartScreenCallback {
 
-    private static final String TAG = "otherprefstuner";
+    private static final String TAG = "colortuner";
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         if (getFragmentManager().findFragmentByTag(TAG) == null) {
             final String action = getIntent().getAction();
-            final PreferenceFragment fragment = new OtherPrefs();
+            final PreferenceFragment fragment = new ColorAndAppearanceFragment();
             getFragmentManager().beginTransaction().replace(R.id.content_frame,
                     fragment, TAG).commit();
         }
@@ -74,7 +74,7 @@ public class OtherPrefsActivity extends SettingsDrawerActivity implements
             transaction.commit();
             return true;
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-            Log.d("OtherPrefsActivity", "Problem launching fragment", e);
+            Log.d("ColorAndAppearanceActivity", "Problem launching fragment", e);
             return false;
         }
     }

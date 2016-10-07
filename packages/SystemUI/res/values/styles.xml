@@ -325,6 +325,10 @@
         <item name="preferenceTheme">@style/TunerPreferenceTheme</item>
     </style>
 
+    <style name="TunerSettingsActionBar" parent="@android:style/Theme.Material.Settings">
+        <item name="preferenceTheme">@style/TunerPreferenceTheme</item>
+    </style>
+
     <style name="TunerPreferenceTheme" parent="@android:style/Theme.Material.Settings">
         <item name="dropdownPreferenceStyle">@style/Preference.DropDown.Material</item>
     </style>

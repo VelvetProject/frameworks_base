@@ -46,6 +46,7 @@ public class ColorAndAppearanceFragment extends PreferenceFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mNightModeController = new NightModeController(getContext());
+        getActivity().getActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
     @Override
