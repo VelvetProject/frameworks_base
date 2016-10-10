@@ -3647,6 +3647,7 @@ public final class Settings {
          * 2 - Circle
          * 3 - Text
          * 4 - Droid
+         * 5 - Hidden
          * @hide
          */
         public static final String STATUSBAR_BATTERY_STYLE = "statusbar_battery_style";
@@ -3672,13 +3673,6 @@ public final class Settings {
          * @hide
          */
         public static final String STATUSBAR_BATTERY_CHARGING_IMAGE = "statusbar_battery_charging_image";
-
-        /**
-         * when to show battery - values are 0/none 1/always 2/expanded default is 1/always
-         *
-         * @hide
-         */
-        public static final String STATUSBAR_BATTERY_ENABLE = "statusbar_battery_enable";
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings

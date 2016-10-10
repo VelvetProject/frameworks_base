@@ -50,7 +50,6 @@ public class BatteryViewManager {
     private BatteryController mBatteryController;
     private BarTransitions mBarTransitions;
     private BatteryViewManagerObserver mBatteryStyleObserver;
-    private int mBatteryEnable = 1;
 
     public interface BatteryViewManagerObserver {
         public void batteryStyleChanged(AbstractBatteryView batteryStyle);
@@ -93,6 +92,10 @@ public class BatteryViewManager {
                 R.layout.battery_droid_view, mContainerView, false);
         mBatteryStyleList.add(view);
 
+        view = (AbstractBatteryView) LayoutInflater.from(mContext).inflate(
+                R.layout.battery_hidden_view, mContainerView, false);
+        mBatteryStyleList.add(view);
+
         mContext.getContentResolver().registerContentObserver(
                 Settings.System.getUriFor(Settings.System.STATUSBAR_BATTERY_STYLE), false,
                 mSettingsObserver, UserHandle.USER_ALL);
@@ -104,9 +107,6 @@ public class BatteryViewManager {
                 mSettingsObserver, UserHandle.USER_ALL);
         mContext.getContentResolver().registerContentObserver(
                 Settings.System.getUriFor(Settings.System.STATUSBAR_BATTERY_CHARGING_IMAGE), false,
-                mSettingsObserver, UserHandle.USER_ALL);
-        mContext.getContentResolver().registerContentObserver(
-                Settings.System.getUriFor(Settings.System.STATUSBAR_BATTERY_ENABLE), false,
                 mSettingsObserver, UserHandle.USER_ALL);
 
         mExpandedView = observer != null ? observer.isExpandedBatteryView() : false;
@@ -128,7 +128,7 @@ public class BatteryViewManager {
     }
 
     private void switchBatteryStyle(int style, int showPercent, boolean percentInside,
-                boolean chargingImage, int batteryEnable) {
+                boolean chargingImage) {
         if (style >= mBatteryStyleList.size()) {
             return;
         }
@@ -137,7 +137,6 @@ public class BatteryViewManager {
         mShowPercent = showPercent;
         mPercentInside = percentInside;
         mChargingImage = chargingImage;
-        mBatteryEnable = batteryEnable;
         if (mCurrentBatteryView != null) {
             mContainerView.removeView(mCurrentBatteryView);
         }
@@ -152,13 +151,6 @@ public class BatteryViewManager {
         }
         if (mBarTransitions != null) {
             mBarTransitions.updateBattery(mCurrentBatteryView);
-        }
-        if (mBatteryEnable == 0) {
-            mCurrentBatteryView.setVisibility(View.GONE);
-        } else if (mBatteryEnable == 1) {
-            mCurrentBatteryView.setVisibility(View.VISIBLE);
-        } else if (mBatteryEnable == 2) {
-            mCurrentBatteryView.setVisibility(mExpandedView ? View.VISIBLE : View.GONE);
         }
         notifyObserver();
     }
@@ -191,13 +183,10 @@ public class BatteryViewManager {
         final boolean chargingImage = Settings.System.getIntForUser(mContext.getContentResolver(),
                     Settings.System.STATUSBAR_BATTERY_CHARGING_IMAGE, 1,
                     UserHandle.USER_CURRENT) == 1;
-        final int batteryEnable = Settings.System.getIntForUser(mContext.getContentResolver(),
-                    Settings.System.STATUSBAR_BATTERY_ENABLE, 1, UserHandle.USER_CURRENT);
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                switchBatteryStyle(batteryStyle, showPercent, percentInside, chargingImage,
-                        batteryEnable);
+                switchBatteryStyle(batteryStyle, showPercent, percentInside, chargingImage);
             }
         });
     }

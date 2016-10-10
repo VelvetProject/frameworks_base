@@ -46,5 +46,7 @@
     <string name="battery_style_circle">Circle</string>
     <string name="battery_style_text">Text only</string>
     <string name="battery_style_droid">Droid</string>
+    <string name="battery_style_hidden">Hidden</string>
+
 
 </resources>
