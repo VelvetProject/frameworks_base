@@ -175,6 +175,7 @@ public class StatusBarIconController extends StatusBarIconList implements Tunabl
 
         //mBatteryMeterView.setLayoutParams(scaledLayoutParams);
         //mBatteryMeterViewKeyguard.setLayoutParams(scaledLayoutParams);
+        //mBatteryViewManager.setLayoutParams(scaledLayoutParams);
     }
 
     @Override
@@ -599,7 +600,6 @@ public class StatusBarIconController extends StatusBarIconList implements Tunabl
                     ViewGroup.LayoutParams.WRAP_CONTENT, mIconSize);
             child.setLayoutParams(lp);
         }
-        mBatteryViewManager.onDensityOrFontScaleChanged();
         //scaleBatteryMeterViews(mContext);
     }
 
