@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- carrier label text height -->
+    <dimen name="status_bar_carrier_height">14dp</dimen>
+
+</resources>
