@@ -6591,6 +6591,15 @@ public final class Settings {
          */
         public static final String TWILIGHT_MODE = "twilight_mode";
 
+       /**
+         * Status bar battery %
+         * 0: Hide the battery percentage
+         * 1: Display the battery percentage inside the icon
+         * 2: Display the battery percentage next to the icon
+         * @hide
+         */
+        public static final String STATUS_BAR_SHOW_BATTERY_PERCENT = "status_bar_show_battery_percent";
+
         /**
          * Twilight mode always off.
          * @hide
@@ -6758,7 +6767,8 @@ public final class Settings {
             INCALL_POWER_BUTTON_BEHAVIOR,
             STATUS_BAR_LOCKED_ON_SECURE_KEYGUARD,
             ADVANCED_REBOOT,
-            QS_TILES
+            QS_TILES,
+            STATUS_BAR_SHOW_BATTERY_PERCENT
         };
 
         /**
