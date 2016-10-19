@@ -104,9 +104,9 @@ public class BatteryMeterHorizontalView extends AbstractBatteryView implements
 
         // bar width is hardcoded  android:layout_width="14.5dp"
         DisplayMetrics metrics = getResources().getDisplayMetrics();
-        mBarWidth = (int) (14 * metrics.density + 0.5f);
-        mBarSpaceWidth = (int) (16 * metrics.density + 0.5f);
-        mBarHeight = (int) (9 * metrics.density + 0.5f);
+        mBarWidth = (int) (20 * metrics.density + 0.5f);
+        mBarSpaceWidth = (int) (22 * metrics.density + 0.5f);
+        mBarHeight = (int) (10 * metrics.density + 0.5f);
         mPercentOffsetY = (int) (1 * metrics.density + 0.5f);
         mBoltWidth = (int) (8 * metrics.density + 0.5f);
     }
@@ -173,29 +173,27 @@ public class BatteryMeterHorizontalView extends AbstractBatteryView implements
 
         if (showChargingImage()) {
             // define the bolt shape
-            final float bl = mFrame.left + mFrame.width() / 10f;
+            final float bl = mFrame.left + mFrame.width() / 2f - mBoltWidth / 2f;
             final float bt = mFrame.top + insetTop + 5;
-            final float br = mFrame.right - mFrame.width() / 6f;
+            final float br = mFrame.right - mFrame.width() / 2f + mBoltWidth / 2f;
             final float bb = mFrame.bottom - insetBottom - 2;
             if (mBoltFrame.left != bl || mBoltFrame.top != bt
                     || mBoltFrame.right != br || mBoltFrame.bottom != bb) {
                 mBoltFrame.set(bl, bt, br, bb);
                 mBoltPath.reset();
                 mBoltPath.moveTo(
-                        mBoltFrame.left + mHorizontalBoltPoints[0] * mBoltFrame.width(),
-                        mBoltFrame.top + mHorizontalBoltPoints[1] * mBoltFrame.height());
-                for (int i = 2; i < mHorizontalBoltPoints.length; i += 2) {
+                        mBoltFrame.left + mBoltPoints[0] * mBoltFrame.width(),
+                        mBoltFrame.top + mBoltPoints[1] * mBoltFrame.height());
+                for (int i = 2; i < mBoltPoints.length; i += 2) {
                     mBoltPath.lineTo(
-                            mBoltFrame.left + mHorizontalBoltPoints[i] * mBoltFrame.width(),
-                            mBoltFrame.top + mHorizontalBoltPoints[i + 1] * mBoltFrame.height());
+                            mBoltFrame.left + mBoltPoints[i] * mBoltFrame.width(),
+                            mBoltFrame.top + mBoltPoints[i + 1] * mBoltFrame.height());
                 }
                 mBoltPath.lineTo(
-                        mBoltFrame.left + mHorizontalBoltPoints[0] * mBoltFrame.width(),
-                        mBoltFrame.top + mHorizontalBoltPoints[1] * mBoltFrame.height());
+                        mBoltFrame.left + mBoltPoints[0] * mBoltFrame.width(),
+                        mBoltFrame.top + mBoltPoints[1] * mBoltFrame.height());
             }
 
-            float boltPct = (mBoltFrame.left - levelTop) / (mBoltFrame.left - mBoltFrame.right);
-            boltPct = Math.min(Math.max(boltPct, 0), 1);
             if (drawFrac <= BOLT_LEVEL_THRESHOLD) {
                 // draw the bolt if opaque
                 c.drawPath(mBoltPath, mBoltPaint);
@@ -276,10 +274,10 @@ public class BatteryMeterHorizontalView extends AbstractBatteryView implements
         final int level = mTracker.level;
         if (mPercentInside) {
             Typeface font = Typeface.create("sans-serif-condensed", Typeface.BOLD);
-            mTextPaint.setTypeface(font);
             mTextPaint.setTextAlign(Paint.Align.CENTER);
+            mTextPaint.setTypeface(font);
             DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
-            mTextSize = (int) ((level == 100 ? 7 : 9) * metrics.density + 0.5f);
+            mTextSize = (int) (10 * metrics.density + 0.5f);
             mTextPaint.setTextSize(mTextSize);
             Rect bounds = new Rect();
             String text = "100";
@@ -289,10 +287,11 @@ public class BatteryMeterHorizontalView extends AbstractBatteryView implements
             Typeface font = Typeface.create("sans-serif-medium", Typeface.NORMAL);
             mTextPaint.setTypeface(font);
             mTextPaint.setTextAlign(Paint.Align.RIGHT);
-            mTextSize = getResources().getDimensionPixelSize(R.dimen.omni_battery_level_text_size);
+            mTextSize = getResources().getDimensionPixelSize(level == 100 ?
+                    R.dimen.omni_battery_level_text_size_small : R.dimen.omni_battery_level_text_size);
             mTextPaint.setTextSize(mTextSize);
             Rect bounds = new Rect();
-            String text = NumberFormat.getPercentInstance().format((double) level / 100.0);
+            String text = level == 100 ? "100%" : ".00%";
             mTextPaint.getTextBounds(text, 0, text.length(), bounds);
             mTextWidth = bounds.width();
         }

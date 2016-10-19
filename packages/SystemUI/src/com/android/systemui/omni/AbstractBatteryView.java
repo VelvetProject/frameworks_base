@@ -39,8 +39,6 @@ import android.view.View;
 import com.android.systemui.R;
 import com.android.systemui.statusbar.policy.BatteryController;
 
-import java.text.NumberFormat;
-
 public abstract class AbstractBatteryView extends View implements
             BatteryController.BatteryStateChangeCallback {
 
@@ -58,7 +56,6 @@ public abstract class AbstractBatteryView extends View implements
     protected int mFrameColor;
     private int mChargeColor;
     protected final float[] mBoltPoints;
-    protected final float[] mHorizontalBoltPoints;
     protected boolean mChargingImage;
     protected int mDarkModeBackgroundColor;
     protected int mDarkModeFillColor;
@@ -170,7 +167,6 @@ public abstract class AbstractBatteryView extends View implements
                 com.android.internal.R.integer.config_criticalBatteryWarningLevel);
         mChargeColor = getResources().getColor(R.color.batterymeter_charge_color);
         mBoltPoints = loadBoltPoints();
-        mHorizontalBoltPoints = loadHorizontalBoltPoints();
         mBoltPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mBoltPaint.setColor(getResources().getColor(R.color.batterymeter_bolt_color));
 
@@ -278,21 +274,6 @@ public abstract class AbstractBatteryView extends View implements
         return ptsF;
     }
 
-    protected float[] loadHorizontalBoltPoints() {
-        final int[] pts = getResources().getIntArray(R.array.batterymeter_horizontal_bolt_points);
-        int maxX = 0, maxY = 0;
-        for (int i = 0; i < pts.length; i += 2) {
-            maxX = Math.max(maxX, pts[i]);
-            maxY = Math.max(maxY, pts[i + 1]);
-        }
-        final float[] ptsF = new float[pts.length];
-        for (int i = 0; i < pts.length; i += 2) {
-            ptsF[i] = (float)pts[i] / maxX;
-            ptsF[i + 1] = (float)pts[i + 1] / maxY;
-        }
-        return ptsF;
-    }
-
     protected abstract void applyStyle();
 
     protected void setDarkIntensity(float darkIntensity) {
@@ -334,10 +315,11 @@ public abstract class AbstractBatteryView extends View implements
 
     protected void updateExtraPercentFontSize() {
         final int level = mTracker.level;
-        mTextSize = getResources().getDimensionPixelSize(R.dimen.omni_battery_level_text_size);
+        mTextSize = getResources().getDimensionPixelSize(level == 100 ?
+                R.dimen.omni_battery_level_text_size_small : R.dimen.omni_battery_level_text_size);
         mTextPaint.setTextSize(mTextSize);
         Rect bounds = new Rect();
-        String text = NumberFormat.getPercentInstance().format((double) level / 100.0);
+        String text = level == 100 ? "100%" : ".00%";
         mTextPaint.getTextBounds(text, 0, text.length(), bounds);
         mTextWidth = bounds.width();
         requestLayout();
