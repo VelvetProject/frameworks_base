@@ -100,6 +100,7 @@ public class KeyguardStatusBarView extends RelativeLayout
         updateUserSwitcher();
         LinearLayout batteryContainer = (LinearLayout) findViewById(R.id.battery_container);
         mBatteryViewManager = new BatteryViewManager(mContext, batteryContainer, null, null);
+        updateVisibilities();
     }
 
     @Override
