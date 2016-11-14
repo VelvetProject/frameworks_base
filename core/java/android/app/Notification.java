@@ -3749,7 +3749,8 @@ public class Notification implements Parcelable
         int resolveIconContrastColor() {
             boolean notificationTint = Settings.Secure.getInt(mContext.getContentResolver(),
                 Settings.Secure.NOTIFICATION_TITLE_TINT, 1) == 1;
-            if (!notificationTint) {
+            if (!notificationTint || !Resources.getSystem().getBoolean(
+                R.bool.config_allowNotificationIconTextTinting)) {
                 return mContext.getColor(R.color.notification_icon_default_color);
             } else {
                 return resolveContrastColor();
@@ -3759,7 +3760,8 @@ public class Notification implements Parcelable
         int resolveContrastColor() {
             boolean notificationTint = Settings.Secure.getInt(mContext.getContentResolver(),
                 Settings.Secure.NOTIFICATION_TITLE_TINT, 1) == 1;
-            if (!notificationTint) {
+            if (!notificationTint || !Resources.getSystem().getBoolean(
+                R.bool.config_allowNotificationIconTextTinting)) {
                 return mContext.getColor(R.color.notification_text_default_color);
             }
 
