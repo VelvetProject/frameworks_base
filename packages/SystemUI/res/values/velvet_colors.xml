@@ -19,9 +19,4 @@
     <!-- carrier label color -->
     <color name="status_bar_carrier_color">#FFFFFFFF</color>
 
-    <!-- Pixel colors -->
-    <color name="system_primary_color">@*android:color/material_pixel_blue_dark</color>
-    <color name="system_secondary_color">@*android:color/material_pixel_blue_light</color>
-    <color name="system_accent_color">@*android:color/material_pixel_blue_bright</color>
-
 </resources>
