@@ -838,4 +838,8 @@ public class StatusBarHeaderView extends BaseStatusBarHeader implements View.OnC
     public boolean isExpandedBatteryView() {
         return true;
     }
+
+    @Override
+    public void updateSettings() {
+    }
 }
