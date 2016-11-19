@@ -40,14 +40,5 @@
     <!-- Button to soft reboot the device, within the Reboot Options dialog -->
     <string name="reboot_soft">Soft reboot</string>
 
-    <!-- Battery styles -->
-    <string name="battery_style_portrait">Portrait</string>
-    <string name="battery_style_landscape">Landscape</string>
-    <string name="battery_style_circle">Circle</string>
-    <string name="battery_style_text">Text only</string>
-    <string name="battery_style_droid">Droid</string>
-    <string name="battery_style_hidden">Hidden</string>
-
     <string name="default_string">Default</string>
-
 </resources>
