@@ -78,7 +78,8 @@
                 android:layout_gravity="center_vertical"
                 android:layout_marginStart="@dimen/header_battery_margin_keyguard"
                 android:textColor="@color/status_bar_battery_level_text_color"
-                android:textSize="@dimen/battery_level_text_size" />
+                android:textSize="@dimen/battery_level_text_size"
+                android:fontFamily="sans-serif-medium" />
 
             <com.android.systemui.statusbar.policy.Clock
                 android:id="@+id/clock"
