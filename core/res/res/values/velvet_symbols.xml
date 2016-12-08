@@ -35,5 +35,7 @@
     <java-symbol type="string" name="reboot_confirm" />
     <java-symbol type="string" name="reboot_title"/>
     <java-symbol type="string" name="reboot_progress" />
+    <java-symbol type="string" name="reboot_bootloader_progress" />
+    <java-symbol type="string" name="reboot_recovery_progress" />
 
 </resources>

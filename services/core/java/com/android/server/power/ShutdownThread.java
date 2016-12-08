@@ -80,6 +80,7 @@ public final class ShutdownThread extends Thread {
     private static final int MOUNT_SERVICE_STOP_PERCENT = 20;
 
     private static final String SOFT_REBOOT = "soft_reboot";
+    private static final String BOOTLOADER_REBOOT = "bootloader";
 
     // length of vibration before shutting down
     private static final int SHUTDOWN_VIBRATE_MS = 500;
@@ -351,15 +352,25 @@ public final class ShutdownThread extends Thread {
                             com.android.internal.R.string.reboot_to_update_reboot));
             }
         } else if (PowerManager.REBOOT_RECOVERY.equals(mReason)) {
-            // Factory reset path. Set the dialog message accordingly.
-            pd.setTitle(context.getText(com.android.internal.R.string.reboot_to_reset_title));
-            pd.setMessage(context.getText(
-                        com.android.internal.R.string.reboot_to_reset_message));
+            if (mReboot) {
+                pd.setTitle(context.getText(com.android.internal.R.string.reboot_title));
+                pd.setMessage(context.getText(
+                            com.android.internal.R.string.reboot_recovery_progress));
+            } else {
+                // Factory reset path. Set the dialog message accordingly.
+                pd.setTitle(context.getText(com.android.internal.R.string.reboot_to_reset_title));
+                pd.setMessage(context.getText(
+                            com.android.internal.R.string.reboot_to_reset_message));
+            }
             pd.setIndeterminate(true);
         } else {
             if (mReboot) {
                 pd.setTitle(context.getText(com.android.internal.R.string.reboot_title));
-                pd.setMessage(context.getText(com.android.internal.R.string.reboot_progress));
+                pd.setMessage(mReason.equals(BOOTLOADER_REBOOT)
+                                             ? context.getText(
+                                             com.android.internal.R.string.reboot_bootloader_progress)
+                                             : context.getText(
+                                             com.android.internal.R.string.reboot_progress));
             } else {
                 pd.setTitle(context.getText(com.android.internal.R.string.power_off));
                 pd.setMessage(context.getText(com.android.internal.R.string.shutdown_progress));
