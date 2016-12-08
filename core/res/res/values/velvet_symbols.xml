@@ -29,4 +29,9 @@
     <!-- Vendor warning -->
     <java-symbol type="string" name="system_error_vendorprint" />
 
+    <!-- Power menu reboot -->
+    <java-symbol type="string" name="reboot_confirm" />
+    <java-symbol type="string" name="reboot_title" />
+    <java-symbol type="string" name="reboot_progress" />
+
 </resources>
