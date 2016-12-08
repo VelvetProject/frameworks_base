@@ -6669,6 +6669,12 @@ public final class Settings {
         public static final String TEXT_CHARGING_SYMBOL = "text_charging_symbol";
 
         /**
+         * Whether to include options in power menu for rebooting into recovery or bootloader
+         * @hide
+         */
+        public static final String ADVANCED_REBOOT = "advanced_reboot";
+
+        /**
          * This are the settings to be backed up.
          *
          * NOTE: Settings are backed up and restored in the order they appear
@@ -6755,7 +6761,8 @@ public final class Settings {
             NFC_PAYMENT_DEFAULT_COMPONENT,
             STATUS_BAR_SHOW_BATTERY_PERCENT,
             STATUS_BAR_BATTERY_STYLE,
-            STATUS_BAR_BATTERY_STYLE_TILE
+            STATUS_BAR_BATTERY_STYLE_TILE,
+            ADVANCED_REBOOT
         };
 
         /**
