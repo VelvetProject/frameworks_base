@@ -3764,6 +3764,12 @@ public final class Settings {
         public static final String SCREENSHOT_DELAY = "screenshot_delay";
 
         /**
+         * Enable navigation bar long press gesture to take device screenshot
+         * @hide
+         */
+        public static final String LONG_PRESS_NAVBAR_SCREENSHOT = "long_press_navbar_screenshot";
+
+        /**
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
          *
