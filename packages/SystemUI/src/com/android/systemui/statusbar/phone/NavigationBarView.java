@@ -23,13 +23,18 @@ import android.animation.TimeInterpolator;
 import android.animation.ValueAnimator;
 import android.app.ActivityManagerNative;
 import android.app.StatusBarManager;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
+import android.content.ServiceConnection;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
+import android.os.Messenger;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.os.RemoteException;
@@ -49,6 +54,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.LinearLayout;
 import com.android.systemui.R;
 import com.android.systemui.RecentsComponent;
+import com.android.systemui.screenshot.TakeScreenshotService;
 import com.android.systemui.stackdivider.Divider;
 import com.android.systemui.statusbar.policy.DeadZone;
 
@@ -109,6 +115,10 @@ public class NavigationBarView extends LinearLayout {
     private NavigationBarInflaterView mNavigationInflaterView;
 
     private GestureDetector mDoubleTapGesture;
+    private GestureDetector mLongPressGesture;
+
+    private final Object mScreenshotLock = new Object();
+    private ServiceConnection mScreenshotConnection = null;
 
     private class NavTransitionListener implements TransitionListener {
         private boolean mBackTransitioning;
@@ -214,6 +224,14 @@ public class NavigationBarView extends LinearLayout {
             }
         });
 
+        mLongPressGesture = new GestureDetector(mContext,
+                new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public void onLongPress(MotionEvent e) {
+                takeScreenshot();
+            }
+        });
+
         mButtonDisatchers.put(R.id.back, new ButtonDispatcher(R.id.back));
         mButtonDisatchers.put(R.id.home, new ButtonDispatcher(R.id.home));
         mButtonDisatchers.put(R.id.recent_apps, new ButtonDispatcher(R.id.recent_apps));
@@ -245,6 +263,10 @@ public class NavigationBarView extends LinearLayout {
         if (Settings.System.getInt(mContext.getContentResolver(),
                     Settings.System.DOUBLE_TAP_SLEEP_NAVBAR, 0) == 1)
             mDoubleTapGesture.onTouchEvent(event);
+        if (Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.LONG_PRESS_NAVBAR_SCREENSHOT, 0) == 1) {
+            mLongPressGesture.onTouchEvent(event);
+        }
 
         return super.onTouchEvent(event);
     }
@@ -768,4 +790,70 @@ public class NavigationBarView extends LinearLayout {
         void onVerticalChanged(boolean isVertical);
     }
 
+    final Runnable mScreenshotTimeout = new Runnable() {
+        @Override
+        public void run() {
+            synchronized (mScreenshotLock) {
+                if (mScreenshotConnection != null) {
+                    mContext.unbindService(mScreenshotConnection);
+                    mScreenshotConnection = null;
+                }
+            }
+        }
+    };
+
+    private void takeScreenshot() {
+        synchronized (mScreenshotLock) {
+            if (mScreenshotConnection != null) {
+                return;
+            }
+
+            Intent intent = new Intent(mContext, TakeScreenshotService.class);
+            ServiceConnection conn = new ServiceConnection() {
+                @Override
+                public void onServiceConnected(ComponentName name, IBinder service) {
+                    synchronized (mScreenshotLock) {
+                        if (mScreenshotConnection != this) {
+                            return;
+                        }
+
+                        Messenger messenger = new Messenger(service);
+                        Message msg = Message.obtain(null, 1);
+                        final ServiceConnection myConn = this;
+                        Handler h = new Handler(mHandler.getLooper()) {
+                            @Override
+                            public void handleMessage(Message msg) {
+                                synchronized (mScreenshotLock) {
+                                    if (mScreenshotConnection == myConn) {
+                                        mContext.unbindService(mScreenshotConnection);
+                                        mScreenshotConnection = null;
+                                        mHandler.removeCallbacks(mScreenshotTimeout);
+                                    }
+                                }
+                            }
+                        };
+                        msg.replyTo = new Messenger(h);
+                        msg.arg1 = msg.arg2 = 0;
+
+                        // Take the screenshot
+                        try {
+                            messenger.send(msg);
+                        } catch (RemoteException e) {
+                            // Do nothing here
+                        }
+                    }
+                }
+
+                @Override
+                public void onServiceDisconnected(ComponentName name) {
+                    // Do nothing here
+                }
+            };
+
+            if (mContext.bindService(intent, conn, mContext.BIND_AUTO_CREATE)) {
+                mScreenshotConnection = conn;
+                mHandler.postDelayed(mScreenshotTimeout, 10000);
+            }
+        }
+    }
 }
