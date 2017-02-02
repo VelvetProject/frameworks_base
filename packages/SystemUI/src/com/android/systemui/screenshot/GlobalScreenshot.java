@@ -741,14 +741,14 @@ class GlobalScreenshot {
         anim.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationStart(Animator animation) {
-                mBackgroundView.setAlpha(0f);
-                mBackgroundView.setVisibility(View.VISIBLE);
-                mScreenshotView.setAlpha(0f);
-                mScreenshotView.setTranslationX(0f);
-                mScreenshotView.setTranslationY(0f);
-                mScreenshotView.setScaleX(SCREENSHOT_SCALE + mBgPaddingScale);
-                mScreenshotView.setScaleY(SCREENSHOT_SCALE + mBgPaddingScale);
-                mScreenshotView.setVisibility(View.VISIBLE);
+                //mBackgroundView.setAlpha(0f);
+                //mBackgroundView.setVisibility(View.VISIBLE);
+                //mScreenshotView.setAlpha(0f);
+                //mScreenshotView.setTranslationX(0f);
+                //mScreenshotView.setTranslationY(0f);
+                //mScreenshotView.setScaleX(SCREENSHOT_SCALE + mBgPaddingScale);
+                //mScreenshotView.setScaleY(SCREENSHOT_SCALE + mBgPaddingScale);
+                //mScreenshotView.setVisibility(View.VISIBLE);
                 mScreenshotFlash.setAlpha(0f);
                 mScreenshotFlash.setVisibility(View.VISIBLE);
             }
@@ -761,13 +761,13 @@ class GlobalScreenshot {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 float t = (Float) animation.getAnimatedValue();
-                float scaleT = (SCREENSHOT_SCALE + mBgPaddingScale)
-                    - scaleInterpolator.getInterpolation(t)
-                        * (SCREENSHOT_SCALE - SCREENSHOT_DROP_IN_MIN_SCALE);
-                mBackgroundView.setAlpha(scaleInterpolator.getInterpolation(t) * BACKGROUND_ALPHA);
-                mScreenshotView.setAlpha(t);
-                mScreenshotView.setScaleX(scaleT);
-                mScreenshotView.setScaleY(scaleT);
+                //float scaleT = (SCREENSHOT_SCALE + mBgPaddingScale)
+                //    - scaleInterpolator.getInterpolation(t)
+                //        * (SCREENSHOT_SCALE - SCREENSHOT_DROP_IN_MIN_SCALE);
+                //mBackgroundView.setAlpha(scaleInterpolator.getInterpolation(t) * BACKGROUND_ALPHA);
+                //mScreenshotView.setAlpha(t);
+                //mScreenshotView.setScaleX(scaleT);
+                //mScreenshotView.setScaleY(scaleT);
                 mScreenshotFlash.setAlpha(flashAlphaInterpolator.getInterpolation(t));
             }
         });
@@ -780,9 +780,9 @@ class GlobalScreenshot {
         anim.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                mBackgroundView.setVisibility(View.GONE);
-                mScreenshotView.setVisibility(View.GONE);
-                mScreenshotView.setLayerType(View.LAYER_TYPE_NONE, null);
+                //mBackgroundView.setVisibility(View.GONE);
+                //mScreenshotView.setVisibility(View.GONE);
+                //mScreenshotView.setLayerType(View.LAYER_TYPE_NONE, null);
             }
         });
 
@@ -792,13 +792,13 @@ class GlobalScreenshot {
             anim.addUpdateListener(new AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
-                    float t = (Float) animation.getAnimatedValue();
-                    float scaleT = (SCREENSHOT_DROP_IN_MIN_SCALE + mBgPaddingScale)
-                            - t * (SCREENSHOT_DROP_IN_MIN_SCALE - SCREENSHOT_FAST_DROP_OUT_MIN_SCALE);
-                    mBackgroundView.setAlpha((1f - t) * BACKGROUND_ALPHA);
-                    mScreenshotView.setAlpha(1f - t);
-                    mScreenshotView.setScaleX(scaleT);
-                    mScreenshotView.setScaleY(scaleT);
+                    //float t = (Float) animation.getAnimatedValue();
+                    //float scaleT = (SCREENSHOT_DROP_IN_MIN_SCALE + mBgPaddingScale)
+                    //        - t * (SCREENSHOT_DROP_IN_MIN_SCALE - SCREENSHOT_FAST_DROP_OUT_MIN_SCALE);
+                    //mBackgroundView.setAlpha((1f - t) * BACKGROUND_ALPHA);
+                    //mScreenshotView.setAlpha(1f - t);
+                    //mScreenshotView.setScaleX(scaleT);
+                    //mScreenshotView.setScaleY(scaleT);
                 }
             });
         } else {
@@ -829,16 +829,16 @@ class GlobalScreenshot {
             anim.addUpdateListener(new AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
-                    float t = (Float) animation.getAnimatedValue();
-                    float scaleT = (SCREENSHOT_DROP_IN_MIN_SCALE + mBgPaddingScale)
-                        - scaleInterpolator.getInterpolation(t)
-                            * (SCREENSHOT_DROP_IN_MIN_SCALE - SCREENSHOT_DROP_OUT_MIN_SCALE);
-                    mBackgroundView.setAlpha((1f - t) * BACKGROUND_ALPHA);
-                    mScreenshotView.setAlpha(1f - scaleInterpolator.getInterpolation(t));
-                    mScreenshotView.setScaleX(scaleT);
-                    mScreenshotView.setScaleY(scaleT);
-                    mScreenshotView.setTranslationX(t * finalPos.x);
-                    mScreenshotView.setTranslationY(t * finalPos.y);
+                    //float t = (Float) animation.getAnimatedValue();
+                    //float scaleT = (SCREENSHOT_DROP_IN_MIN_SCALE + mBgPaddingScale)
+                    //    - scaleInterpolator.getInterpolation(t)
+                    //        * (SCREENSHOT_DROP_IN_MIN_SCALE - SCREENSHOT_DROP_OUT_MIN_SCALE);
+                    //mBackgroundView.setAlpha((1f - t) * BACKGROUND_ALPHA);
+                    //mScreenshotView.setAlpha(1f - scaleInterpolator.getInterpolation(t));
+                    //mScreenshotView.setScaleX(scaleT);
+                    //mScreenshotView.setScaleY(scaleT);
+                    //mScreenshotView.setTranslationX(t * finalPos.x);
+                    //mScreenshotView.setTranslationY(t * finalPos.y);
                 }
             });
         }
