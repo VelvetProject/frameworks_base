@@ -527,7 +527,6 @@ static pid_t ForkAndSpecializeCommon(JNIEnv* env, uid_t uid, gid_t gid, jintArra
 #endif
 
   FDTWrapper fd_table(env, &debug_flags);
-
   sigset_t sigchld;
   sigemptyset(&sigchld);
   sigaddset(&sigchld, SIGCHLD);
