@@ -360,6 +360,13 @@ class AppErrors {
             task = data.task;
             msg.obj = data;
             mService.mUiHandler.sendMessage(msg);
+
+            // Send broadcast intent
+            Intent intent = new Intent("projekt.android.APP_CRASH");
+            intent.putExtra("projekt.android.EXTRA_PACKAGE_NAME", r.info.packageName);
+            intent.putExtra("projekt.android.EXTRA_CRASH_REPEATING", data.repeating);
+            intent.putExtra("projekt.android.EXTRA_EXCEPTION_CLASS_NAME", crashInfo.exceptionClassName);
+            mContext.sendBroadcast(intent);
         }
 
         int res = result.get();
