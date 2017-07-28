@@ -498,6 +498,7 @@ public final class SystemServer {
 
         // Manages Overlay packages
         mSystemServiceManager.startService(new OverlayManagerService(mSystemContext, installer));
+        mSystemServiceManager.startService(new SubstratumService(mSystemContext));
 
         // The sensor service needs access to package manager service, app ops
         // service, and permissions service, therefore we start it after them.
