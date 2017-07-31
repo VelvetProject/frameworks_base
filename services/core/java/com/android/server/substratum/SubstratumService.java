@@ -400,13 +400,6 @@ public final class SubstratumService extends SystemService {
                 Binder.restoreCallingIdentity(ident);
             }
         }
-
-        @Override
-        public void onShellCommand(@NonNull final FileDescriptor in,
-                @NonNull final FileDescriptor out, @NonNull final FileDescriptor err,
-                @NonNull final String[] args, @NonNull final ResultReceiver resultReceiver) {
-            (new SubstratumShellCommand(this)).exec(this, in, out, err, args, resultReceiver);
-        }
     };
 
     private static IOverlayManager getOM() {
