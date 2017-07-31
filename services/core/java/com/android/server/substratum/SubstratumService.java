@@ -28,13 +28,20 @@ import android.content.pm.IPackageDeleteObserver;
 import android.content.pm.IPackageInstallObserver2;
 import android.content.pm.IPackageManager;
 import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.res.AssetManager;
 import android.content.substratum.ISubstratumService;
+import android.graphics.Typeface;
+import android.media.RingtoneManager;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.FileUtils;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.os.ResultReceiver;
 import android.os.ServiceManager;
+import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.Log;
@@ -42,21 +49,44 @@ import com.android.server.SystemService;
 
 import java.io.File;
 import java.io.FileDescriptor;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 
 public final class SubstratumService extends SystemService {
 
     private static final String TAG = "SubstratumService";
+    private static final String SUBSTRATUM_PACKAGE = "projekt.substratum";
     private static final boolean DEBUG = true;
     private static IOverlayManager mOM;
     private static IPackageManager mPM;
     private static boolean isWaiting = false;
+    private static List<Sound> SOUNDS = Arrays.asList(
+        new Sound(IOUtils.SYSTEM_THEME_UI_SOUNDS_PATH, "/SoundsCache/ui/", "Effect_Tick",
+                "Effect_Tick", RingtoneManager.TYPE_RINGTONE),
+        new Sound(IOUtils.SYSTEM_THEME_UI_SOUNDS_PATH, "/SoundsCache/ui/", "lock_sound",
+                "Lock"),
+        new Sound(IOUtils.SYSTEM_THEME_UI_SOUNDS_PATH, "/SoundsCache/ui/", "unlock_sound",
+                "Unlock"),
+        new Sound(IOUtils.SYSTEM_THEME_UI_SOUNDS_PATH, "/SoundsCache/ui/",
+                "low_battery_sound", "LowBattery"),
+        new Sound(IOUtils.SYSTEM_THEME_ALARM_PATH, "/SoundsCache/alarms/", "alarm", "alarm",
+                RingtoneManager.TYPE_ALARM),
+        new Sound(IOUtils.SYSTEM_THEME_NOTIFICATION_PATH, "/SoundsCache/notifications/",
+                "notification", "notification", RingtoneManager.TYPE_NOTIFICATION),
+        new Sound(IOUtils.SYSTEM_THEME_RINGTONE_PATH, "/SoundsCache/ringtones/", "ringtone",
+                "ringtone", RingtoneManager.TYPE_RINGTONE)
+    );
     private final Object mLock = new Object();
     private Context mContext;
+    
     public SubstratumService(@NonNull final Context context) {
         super(context);
         mContext = context;
+        IOUtils.clearThemeCache();
         publishBinderService("substratum", mService);
     }
 
@@ -159,7 +189,7 @@ public final class SubstratumService extends SystemService {
         }
 
         @Override
-        public void changePriority(List<String> packages, boolean restartUi) {
+        public void setPriority(List<String> packages, boolean restartUi) {
             final long ident = Binder.clearCallingIdentity();
             try {
                 synchronized (mLock) {
@@ -195,28 +225,180 @@ public final class SubstratumService extends SystemService {
 
         @Override
         public void copy(String source, String destination) {
-            // copy
+            final long ident = Binder.clearCallingIdentity();
+            try {
+                log("CopyJob - copying \'" + source + "\' to \'" + destination + "\'...");
+                File sourceFile = new File(source);
+                if (sourceFile.exists()) {
+                    if (sourceFile.isFile()) {
+                        IOUtils.bufferedCopy(source, destination);
+                    } else {
+                        IOUtils.copyFolder(source, destination);
+                    }
+                } else {
+                    Log.e(TAG, "CopyJob - \'" + source + "\' does not exist, aborting...");
+                }
+            } finally {
+                Binder.restoreCallingIdentity(ident);
+            }
         }
 
         @Override
         public void move(String source, String destination) {
-            // move
+            final long ident = Binder.clearCallingIdentity();
+            try {
+                log("MoveJob - moving \'" + source + "\' to \'" + destination + "\'...");
+                File sourceFile = new File(source);
+                if (sourceFile.exists()) {
+                    if (sourceFile.isFile()) {
+                        IOUtils.bufferedCopy(source, destination);
+                    } else {
+                        IOUtils.copyFolder(source, destination);
+                    }
+                    IOUtils.deleteRecursive(sourceFile);
+                } else {
+                    Log.e(TAG, "MoveJob - \'" + source + "\' does not exist, aborting...");
+                }
+            } finally {
+                Binder.restoreCallingIdentity(ident);
+            }
         }
 
         @Override
         public void mkdir(String destination) {
-            // mkdir
+            final long ident = Binder.clearCallingIdentity();
+            try {
+                log("MkdirJob - creating \'" + destination + "\'...");
+                IOUtils.createDirIfNotExists(destination);
+            } finally {
+                Binder.restoreCallingIdentity(ident);
+            }
         }
 
         @Override
         public void deleteDirectory(String directory, boolean withParent) {
-            // delete directory
+            final long ident = Binder.clearCallingIdentity();
+            try {
+                if (withParent) {
+                    delete(directory);
+                } else {
+                    for (File child : new File(directory).listFiles()) {
+                        delete(child.getAbsolutePath());
+                    }
+                }
+            } finally {
+                Binder.restoreCallingIdentity(ident);
+            }
+        }
+
+        @Override
+        public void applyBootanimation(String name) {
+            final long ident = Binder.clearCallingIdentity();
+            try {
+                if (name == null) {
+                    log("Restoring system boot animation...");
+                    clearBootAnimation();
+                } else {
+                    log("Configuring themed boot animation...");
+                    copyBootAnimation(name);
+                }
+            } finally {
+                Binder.restoreCallingIdentity(ident);
+            }
+        }
+
+        @Override
+        public void applyFonts(String pid, String fileName) {
+            final long ident = Binder.clearCallingIdentity();
+            try {
+                if (pid == null) {
+                    log("Restoring system font...");
+                    clearFonts();
+                } else {
+                    log("Configuring theme font...");
+                    copyFonts(pid, fileName);
+                }
+                restartUi();
+            } finally {
+                Binder.restoreCallingIdentity(ident);
+            }
+        }
+
+        @Override
+        public void applySounds(String pid, String fileName) {
+            final long ident = Binder.clearCallingIdentity();
+            try {
+                if (pid == null) {
+                    log("Restoring system sounds...");
+                    clearSounds();
+                } else {
+                    log("Configuring theme sounds...");
+                    applyThemedSounds(pid, fileName);
+                }
+                restartUi();
+            } finally {
+                Binder.restoreCallingIdentity(ident);
+            }
         }
 
         @Override
         public void applyProfile(List<String> enable, List<String> disable, String name,
                 boolean restartUi) {
-            // apply profile
+            final long ident = Binder.clearCallingIdentity();
+            try {
+                log("ProfileJob - Applying profile: " + name);
+                boolean mRestartUi = restartUi;
+
+                // Clear system theme folder content
+                File themeDir = new File(IOUtils.SYSTEM_THEME_PATH);
+                for (File f : themeDir.listFiles()) {
+                    IOUtils.deleteRecursive(f);
+                }
+
+                // Process theme folder
+                File profileDir = new File(Environment.getExternalStorageDirectory()
+                        .getAbsolutePath() + "/substratum/profiles/" +
+                        name + "/theme");
+
+                if (profileDir.exists()) {
+                    File profileFonts = new File(profileDir, "fonts");
+                    if (profileFonts.exists()) {
+                        IOUtils.copyFolder(profileFonts, new File(IOUtils.SYSTEM_THEME_FONT_PATH));
+                        refreshFonts();
+                        mRestartUi = true;
+                    } else {
+                        clearFonts();
+                    }
+
+                    File profileSounds = new File(profileDir, "audio");
+                    if (profileSounds.exists()) {
+                        IOUtils.copyFolder(profileSounds, new File(IOUtils.SYSTEM_THEME_AUDIO_PATH));
+                        refreshSounds();
+                        mRestartUi = true;
+                    } else {
+                        clearSounds();
+                    }
+                }
+
+                // Disable all overlays installed
+                for (String overlay : disable) {
+                    switchOverlayState(overlay, false);
+                }
+
+                // Enable provided overlays
+                for (String overlay : enable) {
+                    switchOverlayState(overlay, true);
+                }
+
+                // Restart SystemUI when needed
+                if (mRestartUi) {
+                    restartUi();
+                }
+
+                log("ProfileJob - " + name + " successfully applied.");
+            } finally {
+                Binder.restoreCallingIdentity(ident);
+            }
         }
 
         @Override
@@ -241,6 +423,21 @@ public final class SubstratumService extends SystemService {
                     ServiceManager.getService("package"));
         }
         return mPM;
+    }
+
+    private Context getAppContext(String packageName) {
+        Context ctx = null;
+        try {
+            ctx = mContext.createPackageContext(packageName,
+                    Context.CONTEXT_IGNORE_SECURITY);
+        } catch (NameNotFoundException e) {
+            Log.e(TAG, "", e);
+        }
+        return ctx;
+    }
+
+    private Context getSubsContext() {
+        return getAppContext(SUBSTRATUM_PACKAGE);
     }
 
     private void switchOverlayState(String packageName, boolean enable) {
@@ -290,9 +487,308 @@ public final class SubstratumService extends SystemService {
         }
     }
 
+    private void delete(String mFileOrDirectory) {
+        log("DeleteJob - deleting \'" + mFileOrDirectory + "\'...");
+
+        File file = new File(mFileOrDirectory);
+        if (file.exists()) {
+            IOUtils.deleteRecursive(file);
+        } else {
+            Log.e(TAG, "DeleteJob - \'" + mFileOrDirectory + "\' is already deleted.");
+        }
+    }
+
+    private void copyBootAnimation(String fileName) {
+        try {
+            clearBootAnimation();
+
+            File source = new File(fileName);
+            File dest = new File(IOUtils.SYSTEM_THEME_BOOTANIMATION_PATH);
+
+            IOUtils.bufferedCopy(source, dest);
+
+            boolean deleted = source.delete();
+            if (!deleted) {
+                Log.e(TAG, "Could not delete source file...");
+            }
+
+            IOUtils.setPermissions(dest,
+                    FileUtils.S_IRWXU | FileUtils.S_IRGRP | FileUtils.S_IROTH);
+        } catch (Exception e) {
+            Log.e(TAG, "", e);
+        }
+    }
+
+    private void clearBootAnimation() {
+        try {
+            File f = new File(IOUtils.SYSTEM_THEME_BOOTANIMATION_PATH);
+            if (f.exists()) {
+                boolean deleted = f.delete();
+                if (!deleted) {
+                    Log.e(TAG, "Could not delete themed boot animation...");
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "", e);
+        }
+    }
+
+    private void copyFonts(String pid, String zipFileName) {
+        // Prepare local cache dir for font package assembly
+        log("Copy Fonts - Package ID = " + pid + " filename = " + zipFileName);
+
+        File cacheDir = new File(IOUtils.SYSTEM_THEME_CACHE_PATH, "FontCache");
+        if (cacheDir.exists()) {
+            IOUtils.deleteRecursive(cacheDir);
+        }
+
+        boolean created = cacheDir.mkdirs();
+        if (!created) {
+            Log.e(TAG, "Could not create cache directory...");
+        }
+
+        // Copy system fonts into our cache dir
+        IOUtils.copyFolder("/system/fonts", cacheDir.getAbsolutePath());
+
+        // Append zip to filename since it is probably removed
+        // for list presentation
+        if (!zipFileName.endsWith(".zip")) {
+            zipFileName = zipFileName + ".zip";
+        }
+
+        // Copy target themed fonts zip to our cache dir
+        Context themeContext = getAppContext(pid);
+        AssetManager am = themeContext.getAssets();
+        File fontZip = new File(cacheDir, zipFileName);
+        try {
+            InputStream inputStream = am.open("fonts/" + zipFileName);
+            OutputStream outputStream = new FileOutputStream(fontZip);
+            IOUtils.bufferedCopy(inputStream, outputStream);
+        } catch (Exception e) {
+            Log.e(TAG, "", e);
+        }
+
+        // Unzip new fonts and delete zip file, overwriting any system fonts
+        IOUtils.unzip(fontZip.getAbsolutePath(), cacheDir.getAbsolutePath());
+
+        boolean deleted = fontZip.delete();
+        if (!deleted) {
+            Log.e(TAG, "Could not delete ZIP file...");
+        }
+
+        // Check if theme zip included a fonts.xml. If not, Substratum
+        // is kind enough to provide one for us in it's assets
+        try {
+            File testConfig = new File(cacheDir, "fonts.xml");
+            if (!testConfig.exists()) {
+                Context subContext = getSubsContext();
+                AssetManager subsAm = subContext.getAssets();
+                InputStream inputStream = subsAm.open("fonts.xml");
+                OutputStream outputStream = new FileOutputStream(testConfig);
+                IOUtils.bufferedCopy(inputStream, outputStream);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "", e);
+        }
+
+        // Prepare system theme fonts folder and copy new fonts folder from our cache
+        IOUtils.deleteThemedFonts();
+        IOUtils.createFontDirIfNotExists();
+        IOUtils.copyFolder(cacheDir.getAbsolutePath(), IOUtils.SYSTEM_THEME_FONT_PATH);
+
+        // Let system know it's time for a font change
+        IOUtils.clearThemeCache();
+        refreshFonts();
+    }
+
+    private void clearFonts() {
+        IOUtils.deleteThemedFonts();
+        refreshFonts();
+    }
+
+    private void refreshFonts() {
+        // Set permissions on font files and config xml
+        File themeFonts = new File(IOUtils.SYSTEM_THEME_FONT_PATH);
+        if (themeFonts.exists()) {
+            // Set permissions
+            IOUtils.setPermissionsRecursive(themeFonts,
+                    FileUtils.S_IRWXU | FileUtils.S_IRGRP | FileUtils.S_IRWXO,
+                    FileUtils.S_IRWXU | FileUtils.S_IRWXG | FileUtils.S_IROTH | FileUtils.S_IXOTH);
+        }
+
+        // Let system know it's time for a font change
+        SystemProperties.set("sys.refresh_theme", "1");
+        Typeface.recreateDefaults();
+        float fontSize = Settings.System.getFloatForUser(mContext.getContentResolver(),
+                Settings.System.FONT_SCALE, 1.0f, UserHandle.USER_CURRENT);
+        Settings.System.putFloatForUser(mContext.getContentResolver(),
+                Settings.System.FONT_SCALE, (fontSize + 0.0000001f), UserHandle.USER_CURRENT);
+    }
+
+    private void applyThemedSounds(String pid, String zipFileName) {
+        // Prepare local cache dir for font package assembly
+        log("CopySounds - Package ID = \'" + pid + "\'");
+        log("CopySounds - File name = \'" + zipFileName + "\'");
+
+        File cacheDir = new File(IOUtils.SYSTEM_THEME_CACHE_PATH, "SoundsCache");
+        if (cacheDir.exists()) {
+            IOUtils.deleteRecursive(cacheDir);
+        }
+
+        boolean created = cacheDir.mkdirs();
+        if (!created) {
+            Log.e(TAG, "Could not create cache directory...");
+        }
+
+        // Append zip to filename since it is probably removed
+        // for list presentation
+        if (!zipFileName.endsWith(".zip")) {
+            zipFileName = zipFileName + ".zip";
+        }
+
+        // Copy target themed sounds zip to our cache dir
+        Context themeContext = getAppContext(pid);
+        AssetManager am = themeContext.getAssets();
+        File soundsZip = new File(cacheDir, zipFileName);
+        try {
+            InputStream inputStream = am.open("audio/" + zipFileName);
+            OutputStream outputStream = new FileOutputStream(soundsZip);
+            IOUtils.bufferedCopy(inputStream, outputStream);
+        } catch (Exception e) {
+            Log.e(TAG, "", e);
+        }
+
+        // Unzip new sounds and delete zip file
+        IOUtils.unzip(soundsZip.getAbsolutePath(), cacheDir.getAbsolutePath());
+
+        boolean deleted = soundsZip.delete();
+        if (!deleted) {
+            Log.e(TAG, "Could not delete ZIP file...");
+        }
+
+        clearSounds();
+        IOUtils.createAudioDirIfNotExists();
+
+        for (Sound sound : SOUNDS) {
+            File soundsCache = new File(IOUtils.SYSTEM_THEME_CACHE_PATH, sound.cachePath);
+
+            if (!(soundsCache.exists() && soundsCache.isDirectory())) {
+                continue;
+            }
+
+            IOUtils.createDirIfNotExists(sound.themePath);
+
+            File mp3 = new File(IOUtils.SYSTEM_THEME_CACHE_PATH, sound.cachePath + sound.soundPath + ".mp3");
+            File ogg = new File(IOUtils.SYSTEM_THEME_CACHE_PATH, sound.cachePath + sound.soundPath + ".ogg");
+            if (ogg.exists()) {
+                IOUtils.bufferedCopy(ogg,
+                        new File(sound.themePath + File.separator + sound.soundPath + ".ogg"));
+            } else if (mp3.exists()) {
+                IOUtils.bufferedCopy(mp3,
+                        new File(sound.themePath + File.separator + sound.soundPath + ".mp3"));
+            }
+        }
+
+        // Let system know it's time for a sound change
+        IOUtils.clearThemeCache();
+        refreshSounds();
+    }
+
+    private void clearSounds() {
+        IOUtils.deleteThemedAudio();
+        SoundUtils.setDefaultAudible(mContext, RingtoneManager.TYPE_ALARM);
+        SoundUtils.setDefaultAudible(mContext, RingtoneManager.TYPE_NOTIFICATION);
+        SoundUtils.setDefaultAudible(mContext, RingtoneManager.TYPE_RINGTONE);
+        SoundUtils.setDefaultUISounds(mContext.getContentResolver(), "lock_sound", "Lock.ogg");
+        SoundUtils.setDefaultUISounds(mContext.getContentResolver(), "unlock_sound", "Unlock.ogg");
+        SoundUtils.setDefaultUISounds(mContext.getContentResolver(), "low_battery_sound", "LowBattery.ogg");
+    }
+
+    private void refreshSounds() {
+        File soundsDir = new File(IOUtils.SYSTEM_THEME_AUDIO_PATH);
+
+        if (!soundsDir.exists()) {
+            return;
+        }
+
+        // Set permissions
+        IOUtils.setPermissionsRecursive(soundsDir,
+                FileUtils.S_IRWXU | FileUtils.S_IRGRP | FileUtils.S_IRWXO,
+                FileUtils.S_IRWXU | FileUtils.S_IRWXG | FileUtils.S_IROTH | FileUtils.S_IXOTH);
+
+        int metaDataId = getSubsContext().getResources().getIdentifier(
+                "content_resolver_notification_metadata",
+                "string", SUBSTRATUM_PACKAGE);
+
+        for (Sound sound : SOUNDS) {
+            File themePath = new File(sound.themePath);
+
+            if (!(themePath.exists() && themePath.isDirectory())) {
+                continue;
+            }
+
+            File mp3 = new File(themePath, sound.soundPath + ".mp3");
+            File ogg = new File(themePath, sound.soundPath + ".ogg");
+
+            if (ogg.exists()) {
+                if (sound.themePath.equals(IOUtils.SYSTEM_THEME_UI_SOUNDS_PATH) && sound.type !=
+                        0) {
+                    SoundUtils.setUIAudible(mContext, ogg, ogg, sound.type, sound.soundName);
+                } else if (sound.themePath.equals(IOUtils.SYSTEM_THEME_UI_SOUNDS_PATH)) {
+                    SoundUtils.setUISounds(mContext.getContentResolver(), sound.soundName, ogg
+                            .getAbsolutePath());
+                } else {
+                    SoundUtils.setAudible(mContext, ogg, ogg, sound.type, getSubsContext().getString
+                            (metaDataId));
+                }
+            } else if (mp3.exists()) {
+                if (sound.themePath.equals(IOUtils.SYSTEM_THEME_UI_SOUNDS_PATH) && sound.type !=
+                        0) {
+                    SoundUtils.setUIAudible(mContext, mp3, mp3, sound.type, sound.soundName);
+                } else if (sound.themePath.equals(IOUtils.SYSTEM_THEME_UI_SOUNDS_PATH)) {
+                    SoundUtils.setUISounds(mContext.getContentResolver(), sound.soundName,
+                            mp3.getAbsolutePath());
+                } else {
+                    SoundUtils.setAudible(mContext, mp3, mp3, sound.type, getSubsContext().getString
+                            (metaDataId));
+                }
+            } else {
+                if (sound.themePath.equals(IOUtils.SYSTEM_THEME_UI_SOUNDS_PATH)) {
+                    SoundUtils.setDefaultUISounds(mContext.getContentResolver(),
+                            sound.soundName, sound.soundPath + ".ogg");
+                } else {
+                    SoundUtils.setDefaultAudible(mContext, sound.type);
+                }
+            }
+        }
+    }
+
     private void log(String msg) {
         if (DEBUG) {
             Log.d(TAG, msg);
+        }
+    }
+
+    private static class Sound {
+        String themePath;
+        String cachePath;
+        String soundName;
+        String soundPath;
+        int type;
+
+        Sound(String themePath, String cachePath, String soundName, String soundPath) {
+            this.themePath = themePath;
+            this.cachePath = cachePath;
+            this.soundName = soundName;
+            this.soundPath = soundPath;
+        }
+
+        Sound(String themePath, String cachePath, String soundName, String soundPath, int type) {
+            this.themePath = themePath;
+            this.cachePath = cachePath;
+            this.soundName = soundName;
+            this.soundPath = soundPath;
+            this.type = type;
         }
     }
 
@@ -319,3 +815,4 @@ public final class SubstratumService extends SystemService {
         }
     }
 }
+
