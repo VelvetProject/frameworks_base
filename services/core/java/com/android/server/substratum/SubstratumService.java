@@ -82,11 +82,11 @@ public final class SubstratumService extends SystemService {
     );
     private final Object mLock = new Object();
     private Context mContext;
-    
+
     public SubstratumService(@NonNull final Context context) {
         super(context);
         mContext = context;
-        IOUtils.clearThemeCache();
+        IOUtils.createThemeDirIfNotExists();
         publishBinderService("substratum", mService);
     }
 

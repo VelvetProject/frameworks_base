@@ -48,7 +48,7 @@ public class IOUtils {
             + File.separator + "ui";
     public static final String SYSTEM_THEME_BOOTANIMATION_PATH = SYSTEM_THEME_PATH + File.separator
             + "bootanimation.zip";
-    private static final String TAG = IOUtils.class.getSimpleName();
+    private static final String TAG = "SubstratumService";
 
     private static boolean dirExists(String dirPath) {
         final File dir = new File(dirPath);

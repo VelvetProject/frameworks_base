@@ -32,7 +32,7 @@ import java.io.File;
 import java.util.Arrays;
 
 public class SoundUtils {
-    private static final String TAG = SoundUtils.class.getSimpleName();
+    private static final String TAG = "SubstratumService";
     private static final String SYSTEM_MEDIA_PATH = "/system/media/audio";
     private static final String SYSTEM_ALARMS_PATH =
             SYSTEM_MEDIA_PATH + File.separator + "alarms";
