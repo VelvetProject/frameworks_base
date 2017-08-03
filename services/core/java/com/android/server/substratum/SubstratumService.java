@@ -24,9 +24,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.om.IOverlayManager;
 import android.content.om.OverlayInfo;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.IPackageDeleteObserver;
 import android.content.pm.IPackageInstallObserver2;
 import android.content.pm.IPackageManager;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.AssetManager;
@@ -64,6 +66,7 @@ public final class SubstratumService extends SystemService {
     private static IOverlayManager mOM;
     private static IPackageManager mPM;
     private static boolean isWaiting = false;
+    private static String installedPackageName;
     private static List<Sound> SOUNDS = Arrays.asList(
         new Sound(IOUtils.SYSTEM_THEME_UI_SOUNDS_PATH, "/SoundsCache/ui/", "Effect_Tick",
                 "Effect_Tick", RingtoneManager.TYPE_RINGTONE),
@@ -107,8 +110,10 @@ public final class SubstratumService extends SystemService {
                     Settings.Global.PACKAGE_VERIFIER_ENABLE, 1);
             try {
                 synchronized (mLock) {
-                    PackageInstallObserver observer = new PackageInstallObserver();
+                    PackageInstallObserver installObserver = new PackageInstallObserver();
+                    PackageDeleteObserver deleteObserver = new PackageDeleteObserver();
                     for (String path : paths) {
+                        installedPackageName = null;
                         File apkFile = new File(path);
                         if (apkFile.exists()) {
                             log("Installer - installing package from path \'" + path + "\'");
@@ -117,12 +122,29 @@ public final class SubstratumService extends SystemService {
                                     Settings.Global.PACKAGE_VERIFIER_ENABLE, 0);
                             getPM().installPackageAsUser(
                                     path,
-                                    observer,
+                                    installObserver,
                                     PackageManager.INSTALL_REPLACE_EXISTING,
                                     null,
                                     UserHandle.USER_SYSTEM);
                             while (isWaiting) {
                                 Thread.sleep(500);
+                            }
+
+                            if (installedPackageName != null) {
+                                PackageInfo pi = getPM().getPackageInfo(installedPackageName,
+                                        0, UserHandle.USER_SYSTEM);
+                                if ((pi.applicationInfo.flags & ApplicationInfo.FLAG_HAS_CODE) != 0 ||
+                                        pi.overlayTarget == null) {
+                                    isWaiting = true;
+                                    getPM().deletePackageAsUser(
+                                            installedPackageName,
+                                            deleteObserver,
+                                            0,
+                                            UserHandle.USER_SYSTEM);
+                                    while (isWaiting) {
+                                        Thread.sleep(500);
+                                    }
+                                }
                             }
                         }
                     }
@@ -796,6 +818,7 @@ public final class SubstratumService extends SystemService {
         public void onPackageInstalled(String packageName, int returnCode,
                                        String msg, Bundle extras) {
             log("Installer - successfully installed \'" + packageName + "\'!");
+            installedPackageName = packageName;
             isWaiting = false;
         }
     }
